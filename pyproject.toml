@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "dicc"
+version = "0.1.0"
+description = "Terminal dictionary and thesaurus, using the Merriam-Webster dictionary API."
+authors = ["acbuie <aidancbuie@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
