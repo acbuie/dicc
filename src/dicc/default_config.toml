@@ -1,0 +1,49 @@
+[api_keys]
+
+[cache]
+max_size = 10 # In mb
+max_age = 12 # In months
+
+[log]
+log_level = "info"
+
+[style.display]
+panel = "grey50" # Panel border color
+item_index = "bold bright_white on grey50" # Panel title index
+headword = "bright_white"
+fl = "bold orange1" # Functional label
+
+section_title = "grey70"
+
+pronunciation_title = "white underline"
+pronunciation_content = "grey70"
+
+definition_content = "bright_white"
+
+short_def_title = "white underline"
+short_def_content = "sky_blue3"
+
+stem_title = "white underline"
+stem_content = "blue"
+
+rule_style = "white"
+
+searched_word = "bright_white"
+
+[style.tags]
+# Tag pairs
+bold = "bold"
+italic = "italic"
+small_caps = "bold white on black"
+subscript = "underline"
+superscript = "overline on bright_black" 
+glossary = "white on blue"
+paragraph_word = "bold white on blue"
+phrase = "bold italic white"
+quote_word = "italic"
+run_in_word = "italic"
+
+# Solo tags
+bold_colon = "bold"
+l_double_quote = "bold"
+r_double_quote = "bold"
