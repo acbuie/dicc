@@ -5,7 +5,7 @@ import re
 from rich.style import Style
 from rich.text import Text
 
-from dicc.config import CONFIG
+from dicc.config.main import CONFIG
 
 
 def _remove_tag(text: Text, tag: str) -> Text:

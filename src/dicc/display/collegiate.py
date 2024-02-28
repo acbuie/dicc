@@ -10,7 +10,7 @@ from rich.table import Table
 from rich.text import Text
 from rich.tree import Tree
 
-from dicc.config import CONFIG
+from dicc.config.main import CONFIG
 from dicc.display.common import format_text
 from dicc.display.format_element import format_dt, format_quotations
 from dicc.responses.abstract import MerriamWebsterItem

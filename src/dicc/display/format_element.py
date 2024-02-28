@@ -3,7 +3,7 @@ from typing import Optional
 
 from rich.text import Text
 
-from dicc.config import CONFIG
+from dicc.config.main import CONFIG
 from dicc.display.common import format_text
 from dicc.responses.collegiate import (
     AttributionQuote,
