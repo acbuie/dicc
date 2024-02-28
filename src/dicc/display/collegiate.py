@@ -55,7 +55,7 @@ if TYPE_CHECKING:
 
 
 def _format_sense_values(
-    sn: Optional[SenseNumber]
+    sn: Optional[SenseNumber],
 ) -> tuple[Optional[int], Optional[str], Optional[str]]:
     major_sense = None
     minor_sense = None
