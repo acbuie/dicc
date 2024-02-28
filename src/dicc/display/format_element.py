@@ -78,15 +78,20 @@ def format_ri(ri: list[RunInElement]) -> Text:
     ri_text = Text(" ")
 
     for element in ri:
-        if element[0] == "riw":
-            rie = element[1]["rie"]
-            ri_text.append_text(Text(rie))
+        # If a list, we have RunInWrap or RunInBuffer
+        if isinstance(element, list):
+            if element[0] == "riw":
+                rie = element[1]["rie"]
+                ri_text.append_text(Text(rie))
 
-        elif element[0] == "text":
-            intervening_text = Text(element[1])
-            ri_text.append_text(intervening_text)
+            elif element[0] == "text":
+                intervening_text = Text(element[1])
+                ri_text.append_text(intervening_text)
 
-    # TODO: Handle `Pronunciation` and `Variants`
+        # If not, we have Pronunciation or Variant
+        else:
+            # TODO: Handle `Pronunciation` and `Variants`
+            print(element)
 
     return ri_text
 
@@ -164,9 +169,9 @@ def format_ca(ca: CalledAlsoElement) -> Text:
     return final_text
 
 
-def format_bnw(bnw: BiographicalNameElement) -> Text:
-    """Format the biographical name wrap section."""
-    pass
+# def format_bnw(bnw: BiographicalNameElement) -> Text:
+#     """Format the biographical name wrap section."""
+#     pass
 
 
 def format_dt(dt: DefiningText) -> Text:
