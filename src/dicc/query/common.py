@@ -7,9 +7,12 @@ import sqlite3
 from typing import TYPE_CHECKING, NamedTuple
 
 import httpx
+from rich.text import Text
 
 from dicc import cache, url
 from dicc.display.collegiate import Collegiate
+from dicc.display.no_response import InvalidSearch
+from dicc.terminal import console
 
 if TYPE_CHECKING:
     from dicc.responses.abstract import MerriamWebsterItem
@@ -46,7 +49,27 @@ def process_query(
         response = client.get(query.query_url).raise_for_status()
         json_response = response.json()
 
+    # Insert into cache if pulled from API
+    if not cache_record:
+        cache.insert_row(con, query, json.dumps(json_response))
+
     data: list[MerriamWebsterItem] = []
+
+    # No result, or list of alternate search terms
+    if not json_response or isinstance(json_response[0], str):
+        json_response: list[str]  # type: ignore [no-redef]
+
+        message = (
+            "No results found for the searched term. Perhaps you meant one of "
+            "the following?"
+        )
+
+        console.print(Text(message, style="italic red"))
+
+        for index, item in enumerate(json_response):
+            data.append(InvalidSearch.from_json(item, index))
+
+        return data
 
     match query.method:
         case "dictionary":
@@ -62,9 +85,5 @@ def process_query(
 
         case _:
             raise ValueError("Invalid query method.")
-
-    # Insert into cache if pulled from API
-    if not cache_record:
-        cache.insert_row(con, query, json.dumps(json_response))
 
     return data
