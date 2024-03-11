@@ -37,8 +37,8 @@ italic = "italic"
 small_caps = "bold white on black"
 subscript = "underline"
 superscript = "overline on bright_black" 
-glossary = "white on blue"
-paragraph_word = "bold white on blue"
+glossary = "white" # Bracket style
+paragraph_word = "bold"
 phrase = "bold italic white"
 quote_word = "italic"
 run_in_word = "italic"
@@ -47,3 +47,6 @@ run_in_word = "italic"
 bold_colon = "bold"
 l_double_quote = "bold"
 r_double_quote = "bold"
+
+# Special tags
+cross_reference = "blue underline italic"

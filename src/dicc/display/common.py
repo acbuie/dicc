@@ -7,6 +7,8 @@ from rich.text import Text
 
 from dicc.config.main import CONFIG
 
+# TODO: Standardize these functions so they behave in the same way
+
 
 def _remove_tag(text: Text, tag: str) -> Text:
     """Remove all occurences of one tag."""
@@ -20,9 +22,6 @@ def _remove_tag(text: Text, tag: str) -> Text:
 
 def _remove_tag_pair(text: Text, open_tag: str, close_tag: str) -> Text:
     """Remove all occurences of two tags, as an open and closing tag."""
-    # open_tag = f"{{{tag}}}"
-    # close_tag = rf"{{\/{tag}}}"
-
     # NOTE: There is probably a clever way to do this with recursion.
 
     initial_text = Text()
@@ -32,14 +31,6 @@ def _remove_tag_pair(text: Text, open_tag: str, close_tag: str) -> Text:
     final_text.append_text(_remove_tag(initial_text, close_tag))
 
     return final_text
-
-
-# def _stylize_between_tags(text: Text, style: str, pattern: str) -> Text:
-#     # pattern = f"(?<={{{tag}}})(.*?)(?={{\\\\/{tag}}})"
-#
-#     text.highlight_regex(pattern, Style.parse(style))
-#
-#     return text
 
 
 def _stylize_at_tag(
@@ -62,7 +53,26 @@ def _stylize_at_tag(
 
     text = text[:start_index] + replacement + text[end_index:]
 
-    text = _stylize_at_tag(text, pattern, replacement)
+    return text
+
+
+def _stylize_at_tag_recursive(text: Text, pattern: str, replacement: Text) -> Text:
+    """Recursively replace a single tag, as regex pattern, with `Text`."""
+    simple_text = text.plain
+
+    search = re.compile(pattern)
+    first_hit = search.search(simple_text)
+
+    if not first_hit:
+        return text
+
+    coord = first_hit.span()
+    start_index = coord[0]
+    end_index = coord[1]
+
+    text = text[:start_index] + replacement + text[end_index:]
+
+    text = _stylize_at_tag_recursive(text, pattern, replacement)
 
     return text
 
@@ -113,9 +123,33 @@ def _format_tag_ds(text: Text) -> Text:
         starting_text + vd_text + sn_num_text + sn_letter_text + sn_paren_text
     )
 
-    final_text = _stylize_at_tag(text, pattern, replacement_text)
+    final_text = _stylize_at_tag_recursive(text, pattern, replacement_text)
 
     return final_text
+
+
+def _format_cross_reference(text: Text, tag: str, style: str) -> Text:
+    """Format cross reference tags."""
+    pattern = f"{{{tag}(.*?)}}"
+    searcher = re.compile(pattern)
+
+    first_hit = searcher.search(text.plain)
+
+    if not first_hit:
+        return text
+
+    # TODO: For now, just grab the second field
+    split = first_hit.group(1).split("|")
+    display_text = split[1]
+
+    replacement_text = Text(display_text, style=style)
+
+    final_text = _stylize_at_tag(text, pattern, replacement_text)
+
+    # Recursive to grab all instances of the tag
+    recursive_text = _format_cross_reference(final_text, tag, style)
+
+    return recursive_text
 
 
 def _format_run_in(text: Text) -> Text:
@@ -142,6 +176,7 @@ def format_text(text: Text) -> Text:
         "qword",
         "wi",
     ]
+
     tag_solo = [
         "bc",
         "ldquo",
@@ -149,8 +184,25 @@ def format_text(text: Text) -> Text:
     ]
 
     tag_special = [
-        "ds",
+        "ds",  # Date sense token
         "ri",  # Format weird run in text
+    ]
+
+    tag_cross_reference_pairs = [
+        "dx",
+        "dx_def",
+        "dx_ety",
+        "ma",
+    ]
+
+    tag_cross_reference = [
+        "a_link",
+        "d_link",
+        "i_link",
+        "et_link",
+        "mat",
+        "sx",
+        "dxt",
     ]
 
     styles = [
@@ -169,6 +221,17 @@ def format_text(text: Text) -> Text:
         CONFIG.style["tags"]["r_double_quote"],
         None,
         None,
+        None,
+        None,
+        None,
+        None,
+        CONFIG.style["tags"]["cross_reference"],
+        CONFIG.style["tags"]["cross_reference"],
+        CONFIG.style["tags"]["cross_reference"],
+        CONFIG.style["tags"]["cross_reference"],
+        CONFIG.style["tags"]["cross_reference"],
+        CONFIG.style["tags"]["cross_reference"],
+        CONFIG.style["tags"]["cross_reference"],
     ]
 
     replacements = [  # When a token is entirely substituted
@@ -181,8 +244,17 @@ def format_text(text: Text) -> Text:
         *[None] * len(tag_pairs),
         *replacements,
         *[None] * len(tag_special),
+        *[None] * len(tag_cross_reference_pairs),
+        *[None] * len(tag_cross_reference),
     ]
-    all_tags = [*tag_pairs, *tag_solo, *tag_special]
+
+    all_tags = [
+        *tag_pairs,
+        *tag_solo,
+        *tag_special,
+        *tag_cross_reference_pairs,
+        *tag_cross_reference,
+    ]
 
     for tag, style, replacement in zip(all_tags, styles, all_replacements):
         match tag:
@@ -192,7 +264,6 @@ def format_text(text: Text) -> Text:
                 | "sc"
                 | "inf"
                 | "sup"
-                | "gloss"  # Might get moved
                 | "parahw"
                 | "phrase"
                 | "qword"
@@ -205,6 +276,27 @@ def format_text(text: Text) -> Text:
                 text.highlight_regex(between_pattern, Style.parse(style))
 
                 text = _remove_tag_pair(text, open_pattern, close_pattern)
+
+            case "gloss":
+                open_pattern = "{gloss}"
+                close_pattern = r"{/gloss}"
+
+                open_replacement = Text("[", style=style)
+                close_replacement = Text("]", style=style)
+
+                open_text = _stylize_at_tag(text, open_pattern, open_replacement)
+                text = _stylize_at_tag(open_text, close_pattern, close_replacement)
+
+            # TODO: Refactor into function with "gloss"
+            case "dx_def":
+                open_pattern = "{dx_def}"
+                close_pattern = r"{/dx_def}"
+
+                open_replacement = Text("(", style=style)
+                close_replacement = Text(")", style=style)
+
+                open_text = _stylize_at_tag(text, open_pattern, open_replacement)
+                text = _stylize_at_tag(open_text, close_pattern, close_replacement)
 
             case "bc" | "ldquo" | "rdquo":
                 pattern = f"{{{tag}}}*"
@@ -221,6 +313,18 @@ def format_text(text: Text) -> Text:
 
             case "ri":
                 text = _format_run_in(text)
+
+            case "dx" | "dt_ety":
+                open_pattern = f"{{{tag}}}"
+                close_pattern = rf"{{/{tag}}}"
+
+                replacement_text = Text("\n — ")
+
+                text = _stylize_at_tag(text, open_pattern, replacement_text)
+                text = _remove_tag_pair(text, open_pattern, close_pattern)
+
+            case "a_link" | "d_link" | "i_link" | "et_link" | "mat" | "sx" | "dxt":
+                text = _format_cross_reference(text, tag, style)
 
             case _:
                 # Not handled

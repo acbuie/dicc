@@ -275,7 +275,7 @@ class Collegiate(MerriamWebsterItem):
         dict_index_text = Text(
             f" {self.index + 1} ", style=CONFIG.style["display"]["item_index"]
         )
-        panel_title_spacing = Text(" ── ", style=CONFIG.style["display"]["panel"])
+        panel_title_spacing = Text(" ─── ", style=CONFIG.style["display"]["panel"])
         headword_text = Text(
             self.meta["id"].replace(":", " : "),
             style=CONFIG.style["display"]["headword"],

@@ -83,6 +83,8 @@ class StyleTagsSchema(TypedDict):
     l_double_quote: str
     r_double_quote: str
 
+    cross_reference: str
+
 
 class StyleSchema(TypedDict):
     """The style table schema."""
